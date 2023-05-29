@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FormControl,
@@ -20,8 +20,7 @@ import {
   setErrors,
   setSeed,
   generateRecords,
-  selectRecords,
-  selectHasMore,
+  nextPage,
 } from './features/appSlice';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import RecordRow from './components/RecordRow';
@@ -30,46 +29,51 @@ const regions = ['Poland', 'USA', 'Georgia'];
 
 const App = () => {
   const dispatch = useDispatch();
-  const records = useSelector(selectRecords);
-  const hasMore = useSelector(selectHasMore);
-
-  const [region, setRegionValue] = useState('');
-  const [errors, setErrorsValue] = useState(0);
-  const [seed, setSeedValue] = useState('');
+  const { region, seed, errors, records, hasMore } = useSelector(
+    (state) => state.app
+  );
 
   useEffect(() => {
     dispatch(generateRecords());
   }, [region, errors, seed, dispatch]);
 
   const handleRegionChange = (event) => {
-    setRegionValue(event.target.value);
-    dispatch(setRegion);
+    dispatch(setRegion(event.target.value));
   };
 
-  const handleErrorsChange = (event, newValue) => {
-    setErrorsValue(newValue);
-    dispatch(setErrors(event.target.value));
+  const handleErrorsChange = (event, value) => {
+    dispatch(setErrors(value));
   };
-
+  const handleTextInputChange = (event) => {
+    let value = event.target.value;
+    if (value === '') {
+      value = 0;
+    }
+    const numericValue = Number(value);
+    if (!isNaN(numericValue)) {
+      if (numericValue > 10) {
+        value = 10;
+      }
+      dispatch(setErrors(numericValue));
+    }
+  };
   const handleSeedChange = (event) => {
-    setSeedValue(event.target.value);
     dispatch(setSeed(event.target.value));
   };
 
   const handleLoadMore = () => {
+    hasMore && dispatch(nextPage());
+
     dispatch(generateRecords());
   };
-
+  console.log(records);
   return (
     <div>
       <h1 style={{ textAlign: 'center' }}>Fake User Data Generator</h1>
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: '30px' }}>
         <FormControl sx={{ width: '200px' }}>
           <InputLabel id='region-label'>Region:</InputLabel>
-          <Select
-            id='region'
-            value={region}
-            onChange={handleRegionChange}>
+          <Select id='region' value={region} onChange={handleRegionChange}>
             {regions.map((region) => (
               <MenuItem key={region} value={region}>
                 {region}
@@ -80,14 +84,12 @@ const App = () => {
         <div>
           <InputLabel id='errors-label'>Errors per Record:</InputLabel>
           <Slider
-            labelId='errors-label'
             value={errors}
             step={0.5}
             marks
             min={0}
             max={10}
             sx={{ width: '300px' }}
-            fullWidth
             onChange={handleErrorsChange}
           />
         </div>
@@ -96,8 +98,8 @@ const App = () => {
             type='number'
             value={errors}
             sx={{ marginRight: '10px' }}
-            onChange={handleErrorsChange}
-            InputProps={{ inputProps: { min: 0, max: 1000 } }}
+            onChange={handleTextInputChange}
+            InputProps={{ inputProps: { min: 0, max: 1000, step: 0.5 } }}
           />
           <TextField
             id='seed'
@@ -120,8 +122,7 @@ const App = () => {
             }}>
             <CircularProgress />
           </Box>
-        }
-        scrollThreshold={0.9}>
+        }>
         <Table>
           <TableHead>
             <TableRow>

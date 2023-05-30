@@ -81,7 +81,6 @@ const App = () => {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      dispatch(setHasMore(false))
     };
   }, [handleScroll, hasMore]);
   return (

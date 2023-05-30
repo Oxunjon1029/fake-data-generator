@@ -5,10 +5,10 @@ const RecordRow = ({ record, index }) => {
   return (
     <TableRow>
       <TableCell>{index}</TableCell>
-      <TableCell>{record.identifier}</TableCell>
-      <TableCell>{record.name}</TableCell>
-      <TableCell>{record.address}</TableCell>
-      <TableCell>{record.phone}</TableCell>
+      <TableCell>{record?.identifier}</TableCell>
+      <TableCell>{record?.name}</TableCell>
+      <TableCell>{record?.address}</TableCell>
+      <TableCell>{record?.phone}</TableCell>
     </TableRow>
   );
 };

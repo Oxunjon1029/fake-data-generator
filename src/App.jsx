@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FormControl,
@@ -20,9 +20,8 @@ import {
   setErrors,
   setSeed,
   generateRecords,
-  nextPage,
+  fetchMoreRecords,
 } from './features/appSlice';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import RecordRow from './components/RecordRow';
 
 const regions = ['Poland', 'USA', 'Georgia'];
@@ -33,16 +32,14 @@ const App = () => {
     (state) => state.app
   );
 
-  useEffect(() => {
-    dispatch(generateRecords());
-  }, [region, errors, seed, dispatch]);
-
   const handleRegionChange = (event) => {
     dispatch(setRegion(event.target.value));
+    dispatch(generateRecords());
   };
 
   const handleErrorsChange = (event, value) => {
     dispatch(setErrors(value));
+    dispatch(generateRecords());
   };
   const handleTextInputChange = (event) => {
     let value = event.target.value;
@@ -55,20 +52,34 @@ const App = () => {
         value = 10;
       }
       dispatch(setErrors(numericValue));
+      dispatch(generateRecords());
     }
   };
   const handleSeedChange = (event) => {
     dispatch(setSeed(event.target.value));
-  };
-
-  const handleLoadMore = () => {
-    hasMore && dispatch(nextPage());
-
     dispatch(generateRecords());
   };
-  console.log(records);
+
+
+  const handleScroll = useCallback(() => {
+    let wrappedEl = document.getElementById('app');
+    if (
+      wrappedEl.scrollHeight - wrappedEl.scrollTop ===
+      wrappedEl.clientHeight
+    ) {
+      dispatch(fetchMoreRecords());
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
   return (
-    <div>
+    <div id='app'>
       <h1 style={{ textAlign: 'center' }}>Fake User Data Generator</h1>
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: '30px' }}>
         <FormControl sx={{ width: '200px' }}>
@@ -109,41 +120,33 @@ const App = () => {
           />
         </div>
       </Box>
-      <InfiniteScroll
-        dataLength={records.length}
-        next={handleLoadMore}
-        hasMore={hasMore}
-        loader={
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <CircularProgress />
-          </Box>
-        }>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Index</TableCell>
-              <TableCell>Identifier</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Address</TableCell>
-              <TableCell>Phone</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {records.map((record, index) => (
-              <RecordRow
-                key={record.identifier}
-                record={record}
-                index={index}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </InfiniteScroll>
+      
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Index</TableCell>
+            <TableCell>Identifier</TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell>Address</TableCell>
+            <TableCell>Phone</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {records?.map((record, index) => (
+            <RecordRow key={record?.identifier} record={record} index={index} />
+          ))}
+        </TableBody>
+      </Table>
+      {hasMore && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <CircularProgress />
+        </Box>
+      )}
     </div>
   );
 };

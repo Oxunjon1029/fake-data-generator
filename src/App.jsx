@@ -21,6 +21,7 @@ import {
   setSeed,
   generateRecords,
   fetchMoreRecords,
+  setHasMore,
 } from './features/appSlice';
 import RecordRow from './components/RecordRow';
 
@@ -36,6 +37,7 @@ const App = () => {
     dispatch(setRegion(event.target.value));
     dispatch(generateRecords());
   };
+  console.log(records);
 
   const handleErrorsChange = (event, value) => {
     dispatch(setErrors(value));
@@ -58,26 +60,30 @@ const App = () => {
   const handleSeedChange = (event) => {
     dispatch(setSeed(event.target.value));
     dispatch(generateRecords());
+    dispatch(setHasMore(false));
+    console.log(records);
   };
-
 
   const handleScroll = useCallback(() => {
     let wrappedEl = document.getElementById('app');
     if (
-      wrappedEl.scrollHeight - wrappedEl.scrollTop ===
-      wrappedEl.clientHeight
+      hasMore &&
+      wrappedEl.scrollHeight - wrappedEl.scrollTop === wrappedEl.clientHeight
     ) {
+      dispatch(setHasMore(true));
       dispatch(fetchMoreRecords());
     }
-  }, [dispatch]);
+  }, [dispatch, hasMore]);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
+    if (hasMore) {
+      window.addEventListener('scroll', handleScroll);
+    }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [handleScroll]);
+  }, [handleScroll, hasMore]);
   return (
     <div id='app'>
       <h1 style={{ textAlign: 'center' }}>Fake User Data Generator</h1>
@@ -120,7 +126,7 @@ const App = () => {
           />
         </div>
       </Box>
-      
+
       <Table>
         <TableHead>
           <TableRow>

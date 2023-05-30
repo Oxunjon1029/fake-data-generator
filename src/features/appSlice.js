@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fakerPL, fakerEN_US, fakerKA_GE } from '@faker-js/faker';
+import { fakerPL, fakerEN_US, fakerKA_GE, faker } from '@faker-js/faker';
 
 
 const initialState = {
@@ -29,13 +29,17 @@ const appSlice = createSlice({
     nextPage: (state) => {
       state.currentPage += 1
     },
-
+    setRecords: (state, action) => {
+      state.records = action.payload
+    },
     setHasMore: (state, action) => {
       state.hasMore = action.payload
     },
     generateRecords: (state) => {
+      faker.seed(parseInt(state.seed, 10))
       let newRecords = []
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < state.recordsPerPage; i++) {
+
         let record = generateUserData(state)
         newRecords.push(record)
       }
@@ -51,7 +55,8 @@ const appSlice = createSlice({
   }
 });
 
-const generateUserData = (state) => {
+const generateUserData = (state, recordsPerPage) => {
+
   const { errors, region } = state;
   switch (region) {
     case 'Poland':
@@ -75,7 +80,7 @@ const generateUserData = (state) => {
             erroneousName = erroneousName.substring(0, randomIndex) + erroneousName.substring(randomIndex + 1);
             break;
           case 1:
-            const randomCharacter = fakerEN_US.string.alphaNumeric;
+            const randomCharacter = fakerPL.string.alphaNumeric;
             erroneousName = erroneousName.substring(0, randomIndex) + randomCharacter + erroneousName.substring(randomIndex);
             break;
           case 2:
@@ -91,16 +96,30 @@ const generateUserData = (state) => {
             break;
         }
       }
+      if (recordsPerPage) {
 
-      return {
-        identifier,
-        name: erroneousName,
-        address,
-        phone,
-      };
+        const newRecordsPl = []
+        for (let i = 0; i < recordsPerPage; i++) {
+          newRecordsPl.push({
+            identifier,
+            name: erroneousName,
+            address,
+            phone,
+          })
+        }
+        state.records = newRecordsPl
+      } else {
 
+        return {
+          identifier,
+          name: erroneousName,
+          address,
+          phone,
+        };
+      }
+
+      break
     case "USA":
-
       const identifierUs = fakerEN_US.string.uuid();
       const nameUs = fakerEN_US.person.fullName();
       const addressUs = fakerEN_US.location.streetAddress();
@@ -138,18 +157,28 @@ const generateUserData = (state) => {
         }
       }
 
-      return {
-        identifier: identifierUs,
-        name: erroneousNameUs,
-        address: addressUs,
-        phone: phoneUs,
-      };
-    // });
-    // state.records = newRecordsUS
-    // state.hasMore = false;
-    // break
+      if (recordsPerPage) {
+        const newRecordsUS = []
+        for (let i = 0; i < recordsPerPage; i++) {
+          newRecordsUS.push({
+            identifier: identifierUs,
+            name: erroneousNameUs,
+            address: addressUs,
+            phone: phoneUs,
+          })
+        }
+        state.records = newRecordsUS
+      } else {
+
+        return {
+          identifier: identifierUs,
+          name: erroneousNameUs,
+          address: addressUs,
+          phone: phoneUs,
+        };
+      }
+      break
     case "Georgia":
-      // Array.from({ length: recordsPerPage }, (_, index) => {
       const identifierGE = fakerKA_GE.string.uuid();
       const nameGE = fakerKA_GE.person.fullName();
       const addressGE = fakerKA_GE.location.streetAddress();
@@ -185,18 +214,86 @@ const generateUserData = (state) => {
             break;
         }
       }
-      return {
-        identifier: identifierGE,
-        name: erroneousNameGE,
-        address: addressGE,
-        phone: phoneGE,
-      };
-    // });
-    // state.records = newRecordsGEO
-    // state.hasMore = false;
-    // break
-    default:
+      if (recordsPerPage) {
+        const newRecordsGE = []
+        for (let i = 0; i < recordsPerPage; i++) {
+          newRecordsGE.push({
+            identifier: identifierGE,
+            name: erroneousNameGE,
+            address: addressGE,
+            phone: phoneGE,
+          })
+        }
+        state.records = newRecordsGE
+      } else {
+        return {
+          identifier: identifierGE,
+          name: erroneousNameGE,
+          address: addressGE,
+          phone: phoneGE,
+        };
+      }
+
       break
+    default:
+      const randomIdentifier = faker.string.uuid();
+      const randomName = faker.person.fullName();
+      const randomAddress = faker.location.streetAddress();
+      const randomPhone = formatPolishPhoneNumber(faker.phone.number());
+
+      let randomErrorCount = Math.floor(errors);
+      if (Math.random() < errors % 1) {
+        randomErrorCount += 1;
+      }
+
+      let randomErroneousName = randomName;
+      for (let j = 0; j < randomErrorCount; j++) {
+        const randomIndex = Math.floor(Math.random() * randomErroneousName.length);
+        const randomError = Math.floor(Math.random() * 3);
+
+        switch (randomError) {
+          case 0:
+            randomErroneousName = randomErroneousName.substring(0, randomIndex) + randomErroneousName.substring(randomIndex + 1);
+            break;
+          case 1:
+            const randomCharacter = faker.string.alphaNumeric;
+            randomErroneousName = randomErroneousName.substring(0, randomIndex) + randomCharacter + randomErroneousName.substring(randomIndex);
+            break;
+          case 2:
+            if (randomIndex < randomErroneousName.length - 1) {
+              const charArray = randomErroneousName.split('');
+              const temp = charArray[randomIndex];
+              charArray[randomIndex] = charArray[randomIndex + 1];
+              charArray[randomIndex + 1] = temp;
+              randomErroneousName = charArray.join('');
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      if (recordsPerPage) {
+        console.log('helloo');
+        const ranndomNewRecords = []
+        for (let i = 0; i < recordsPerPage; i++) {
+          ranndomNewRecords.push({
+            identifier: randomIdentifier,
+            name: randomErroneousName,
+            address: randomAddress,
+            phone: randomPhone,
+          })
+        }
+        state.records = ranndomNewRecords
+      } else {
+        return {
+          identifier: randomIdentifier,
+          name: randomErroneousName,
+          address: randomAddress,
+          phone: randomPhone,
+        };
+      }
+
 
   }
 }
@@ -234,7 +331,7 @@ export const fetchMoreRecords = createAsyncThunk(
 
       let newRecords = [];
       for (let i = 0; i < 10; i++) {
-        const record = generateUserData(state);
+        const record = generateUserData(state, null);
         newRecords.push(record)
       }
       console.log(newRecords);
@@ -245,7 +342,7 @@ export const fetchMoreRecords = createAsyncThunk(
   }
 )
 
-export const { setRegion, setErrors, setSeed, nextPage, generateRecords, setHasMore } = appSlice.actions;
+export const { setRegion, setErrors, setSeed, nextPage, generateRecords, setHasMore, setRecords } = appSlice.actions;
 
 export default appSlice.reducer;
 

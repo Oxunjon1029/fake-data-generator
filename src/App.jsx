@@ -76,10 +76,12 @@ const App = () => {
   useEffect(() => {
     if (hasMore) {
       window.addEventListener('scroll', handleScroll);
+      
     }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      dispatch(setHasMore(false))
     };
   }, [handleScroll, hasMore]);
   return (

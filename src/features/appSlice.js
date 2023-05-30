@@ -192,7 +192,6 @@ const generateUserData = (state, recordsPerPage) => {
       for (let j = 0; j < errorCountGE; j++) {
         const randomIndex = Math.floor(Math.random() * erroneousNameGE.length);
         const randomError = Math.floor(Math.random() * 3);
-
         switch (randomError) {
           case 0:
             erroneousNameGE = erroneousNameGE.substring(0, randomIndex) + erroneousNameGE.substring(randomIndex + 1);
@@ -274,7 +273,6 @@ const generateUserData = (state, recordsPerPage) => {
       }
 
       if (recordsPerPage) {
-        console.log('helloo');
         const ranndomNewRecords = []
         for (let i = 0; i < recordsPerPage; i++) {
           ranndomNewRecords.push({
@@ -323,18 +321,17 @@ const formatGeorgianPhoneNumber = (phoneNumber) => {
   }
   return phoneNumber;
 };
+
 export const fetchMoreRecords = createAsyncThunk(
   'app/fetchMoreRecords',
   async (page, { getState, rejectWithValue }) => {
     try {
       const state = getState().app
-
       let newRecords = [];
       for (let i = 0; i < 10; i++) {
         const record = generateUserData(state, null);
         newRecords.push(record)
       }
-      console.log(newRecords);
       return newRecords;
     } catch (error) {
       return rejectWithValue(error.message)

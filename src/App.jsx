@@ -37,7 +37,6 @@ const App = () => {
     dispatch(setRegion(event.target.value));
     dispatch(generateRecords());
   };
-  console.log(records);
 
   const handleErrorsChange = (event, value) => {
     dispatch(setErrors(value));
@@ -61,7 +60,6 @@ const App = () => {
     dispatch(setSeed(event.target.value));
     dispatch(generateRecords());
     dispatch(setHasMore(false));
-    console.log(records);
   };
 
   const handleScroll = useCallback(() => {
